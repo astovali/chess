@@ -83,6 +83,7 @@ void renderingThread(RenderThreadParam param)
 						sprites[position[x][y]].setPosition(mousePosition.x-22.5f, mousePosition.y-22.5f);
 					}
 					else
+
 					{
 						sprites[position[x][y]].setPosition(y*45.f, x*45.f);
 					}
@@ -101,36 +102,41 @@ bool isCheck(Position &position);
 void updateNewPosition(Position &newPosition, int x, int y, int i, int j)
 {
 	newPosition[x+i][y+j] = "";
-	if (newPosition.turnPlayer == 'l' && newPosition.castlingRights['l'][1]
-	&& x == 7 && y == 0) newPosition.castlingRights['l'][1] = false;
-	if (newPosition.turnPlayer == 'l' && newPosition.castlingRights['l'][2]
-	&& x == 7 && y == 7) newPosition.castlingRights['l'][2] = false;
-	if (newPosition.turnPlayer == 'l' && newPosition[x][y] == "kl")
-		newPosition.castlingRights['l'][0] = false; 
-	if (newPosition.turnPlayer == 'd' && newPosition.castlingRights['d'][1]
-	&& x == 0 && y == 0) newPosition.castlingRights['d'][1] = false;
-	if (newPosition.turnPlayer == 'd' && newPosition.castlingRights['d'][2]
-	&& x == 0 && y == 7) newPosition.castlingRights['d'][2] = false;	
-	if (newPosition.turnPlayer == 'd' && newPosition[x][y] == "kd")
-		newPosition.castlingRights['d'][0] = false;  
 	std::swap(newPosition[x+i][y+j], newPosition[x][y]);
+	if (newPosition[0][4] != "kd") newPosition.castlingRights['d'][0] = false; 
+	if (newPosition[0][0] != "rd") newPosition.castlingRights['d'][1] = false;
+	if (newPosition[0][7] != "rd") newPosition.castlingRights['d'][2] = false;
+	if (newPosition[7][4] != "kl") newPosition.castlingRights['l'][0] = false;  
+	if (newPosition[7][0] != "rl") newPosition.castlingRights['l'][1] = false;
+	if (newPosition[7][7] != "rl") newPosition.castlingRights['l'][2] = false; 
+	newPosition.enPassantAllowed = false;
 	newPosition.toggleTurn();
 }
 
 struct MoveGenerator
 {
 	Position position;
-	bool ignoreCheck = true;
-	int x = 0;
-	int y = 0;
-	int i = 0;
-	int pos = 0;
-	bool done = false;
+	bool ignoreCheck;
+	int x;
+	int y;
+	int i;
+	int pos;
+	bool done;
+	MoveGenerator(Position _position, bool _ignoreCheck = true)
+	{
+		position = _position;
+		ignoreCheck = _ignoreCheck;
+		x = 0;
+		y = 0;
+		i = 0;
+		pos = 0;
+		done = false;
+	}
 	Position next()
 	{
 		if (position[x][y] != "" && position[x][y][1] == position.turnPlayer)
 		{
-			Position newPosition;
+			Position newPosition = position;
 			if (position[x][y][0] == 'r' || position[x][y][0] == 'q') //rook and half a queen
 			{
 				while (pos < 1)
@@ -147,22 +153,22 @@ struct MoveGenerator
 						if (position[x+i][y] != "") {
 							if (position[x+i][y][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, i, 0);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
 								}
+								newPosition = position;
 							}
 							pos++;
 							i = 0;
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, i, 0);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -180,22 +186,22 @@ struct MoveGenerator
 						if (position[x-i][y] != "") {
 							if (position[x-i][y][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, -i, 0);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
 								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0;
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, -i, 0);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -213,22 +219,22 @@ struct MoveGenerator
 						if (position[x][y+i] != "") {
 							if (position[x][y+i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, 0, i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
 								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, 0, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position;
 						}
 					}
 				}
@@ -246,22 +252,22 @@ struct MoveGenerator
 						if (position[x][y-i] != "") {
 							if (position[x][y-i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, 0, -i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
 								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, 0, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -283,22 +289,22 @@ struct MoveGenerator
 						if (position[x+i][y+i] != "") {
 							if (position[x+i][y+i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, i, i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
-								} 
+								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, i, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -316,22 +322,22 @@ struct MoveGenerator
 						if (position[x-i][y-i] != "") {	
 							if (position[x-i][y-i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, -i, -i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
-								} 
+								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, -i, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -349,22 +355,22 @@ struct MoveGenerator
 						if (position[x+i][y-i] != "") {
 							if (position[x+i][y-i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, i, -i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
-								} 
+								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, i, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -382,22 +388,22 @@ struct MoveGenerator
 						if (position[x-i][y+i] != "") {
 							if (position[x-i][y+i][1] != position.turnPlayer)
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, -i, i);
 								if (ignoreCheck || !isCheck(newPosition)) {
 									pos++;
 									i = 0;
 									return newPosition;
-								}  
+								}
+								newPosition = position; 
 							}
 							pos++;
 							i = 0; 
 						}
 						else
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, -i, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
+							newPosition = position; 
 						}
 					}
 				}
@@ -422,24 +428,24 @@ struct MoveGenerator
 							if (position[x+moves[i][0]][y+moves[i][1]] != "") {
 								if (position[x+moves[i][0]][y+moves[i][1]][1] != position.turnPlayer)
 								{
-									newPosition = position;
 									updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 									if (ignoreCheck || !isCheck(newPosition)) 
 									{
 										i++;
 										return newPosition;
 									}
+									newPosition = position; 
 								}
 							}
 							else
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 								if (ignoreCheck || !isCheck(newPosition)) 
 								{
 									i++;
 									return newPosition;
 								}
+								newPosition = position; 
 							}
 						}
 						else
@@ -471,24 +477,24 @@ struct MoveGenerator
 							if (position[x+moves[i][0]][y+moves[i][1]] != "") {
 								if (position[x+moves[i][0]][y+moves[i][1]][1] != position.turnPlayer)
 								{
-									newPosition = position;
 									updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 									if (ignoreCheck || !isCheck(newPosition)) 
 									{
 										i++;
 										return newPosition;
 									}
+									newPosition = position; 
 								}
 							}
 							else
 							{
-								newPosition = position;
 								updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 								if (ignoreCheck || !isCheck(newPosition)) 
 								{
 									i++;
 									return newPosition;
 								}
+								newPosition = position; 
 							}
 						}
 						else
@@ -513,7 +519,6 @@ struct MoveGenerator
 						if (i == 0 && position.castlingRights[position.turnPlayer][2]
 						&& position[x][y+1] == "" && position[x][y+2] == "")
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, 0, 2);
 							std::swap(newPosition[x][y+1], newPosition[x][y+3]);
 							if (ignoreCheck || !isCheck(newPosition)) 
@@ -521,11 +526,11 @@ struct MoveGenerator
 								i++;
 								return newPosition;
 							}
+							newPosition = position; 
 						}
 						if (i == 1 && position.castlingRights[position.turnPlayer][1] && position[x][y-1] == "" 
 						&& position[x][y-2] == "" && position[x][y-3] == "")
 						{
-							newPosition = position;
 							updateNewPosition(newPosition, x, y, 0, -2);
 							std::swap(newPosition[x][y-1], newPosition[x][y-4]);
 							if (ignoreCheck || !isCheck(newPosition)) 
@@ -533,6 +538,7 @@ struct MoveGenerator
 								i++;
 								return newPosition;
 							}
+							newPosition = position; 
 						}	 
 					}
 					i++;
@@ -543,7 +549,7 @@ struct MoveGenerator
 				while (pos < 12) 
 				{
 					pos = 11;
-					if (i > 3)
+					if (i > 5)
 					{
 						pos++;
 						i = 0;
@@ -551,17 +557,18 @@ struct MoveGenerator
 					}
 					if (i == 0 && x == 1 && position[x+1][y] == "" && position[x+2][y] == "")
 					{
-						newPosition = position;
 						updateNewPosition(newPosition, x, y, 2, 0); 
+						newPosition.enPassantAllowed = true;
+						newPosition.enPassantSquare = {2, y};
 						if (ignoreCheck || !isCheck(newPosition)) 
 						{
 							i++;
 							return newPosition;
 						}
+						newPosition = position; 
 					}
 					if (i == 1 && x < 7 && position[x+1][y] == "")
 					{
-						newPosition = position;
 						if (x+1 == 7) newPosition[x][y] = "qd";
 						updateNewPosition(newPosition, x, y, 1, 0);		
 						if (ignoreCheck || !isCheck(newPosition)) 
@@ -569,21 +576,21 @@ struct MoveGenerator
 							i++;
 							return newPosition;
 						}
+						newPosition = position; 
 					}
 					if (i == 2 && x < 7 && y > 0 && position[x+1][y-1] != "" && position[x+1][y-1][1] == 'l')
 					{
-						newPosition = position;
 						if (x+1 == 7) newPosition[x][y] = "qd";
 						updateNewPosition(newPosition, x, y, 1, -1);
 						if (ignoreCheck || !isCheck(newPosition)) 
 						{
 							i++;
 							return newPosition;
-						} 
+						}
+						newPosition = position; 
 					}
 					if (i == 3 && x < 7 && y < 7 && position[x+1][y+1] != "" && position[x+1][y+1][1] == 'l')
 					{
-						newPosition = position;
 						if (x+1 == 7) newPosition[x][y] = "qd"; 
 						updateNewPosition(newPosition, x, y, 1, 1);
 						if (ignoreCheck || !isCheck(newPosition)) 
@@ -591,6 +598,33 @@ struct MoveGenerator
 							i++;
 							return newPosition;
 						}
+								newPosition = position; 
+					}
+					if (newPosition.enPassantAllowed && i == 4 
+					&& newPosition.enPassantSquare[0] == x+1 
+					&& newPosition.enPassantSquare[1] == y-1)
+					{
+						updateNewPosition(newPosition, x, y, 1, -1);
+						newPosition[x][y-1] = "";
+						if (ignoreCheck || !isCheck(newPosition)) 
+						{
+							i++;
+							return newPosition;
+						}
+						newPosition = position; 
+					}
+					if (newPosition.enPassantAllowed && i == 5 
+					&& newPosition.enPassantSquare[0] == x+1 
+					&& newPosition.enPassantSquare[1] == y+1) 
+					{
+						updateNewPosition(newPosition, x, y, 1, 1);
+						newPosition[x][y+1] = "";
+						if (ignoreCheck || !isCheck(newPosition)) 
+						{
+							i++;
+							return newPosition;
+						}
+						newPosition = position; 
 					}
 					i++;
 				}
@@ -600,7 +634,7 @@ struct MoveGenerator
 				while (pos < 13)
 				{
 					pos = 12;
-					if (i > 3)
+					if (i > 5)
 					{
 						pos++;
 						i = 0;
@@ -608,28 +642,29 @@ struct MoveGenerator
 					}
 					if (i == 0 && x == 6 && position[x-1][y] == "" && position[x-2][y] == "")
 					{
-						newPosition = position;
 						updateNewPosition(newPosition, x, y, -2, 0);
+						newPosition.enPassantAllowed = true;
+						newPosition.enPassantSquare = {5, y};
 						if (ignoreCheck || !isCheck(newPosition)) 
 						{
 							i++;
 							return newPosition;
 						}
+						newPosition = position; 
 					}
 					if (i == 1 && x > 0 && position[x-1][y] == "")
 					{
-						newPosition = position;
 						if (x-1 == 0) newPosition[x][y] = "ql";
 						updateNewPosition(newPosition, x, y, -1, 0);
 						if (ignoreCheck || !isCheck(newPosition)) 
 						{
 							i++;
 							return newPosition;
-						} 
+						}
+						newPosition = position; 
 					}
 					if (i == 2 && x > 0 && y > 0 && position[x-1][y-1] != "" && position[x-1][y-1][1] == 'd')
 					{
-						newPosition = position;
 						if (x-1 == 0) newPosition[x][y] = "ql";
 						updateNewPosition(newPosition, x, y, -1, -1);
 						if (ignoreCheck || !isCheck(newPosition)) 
@@ -637,10 +672,10 @@ struct MoveGenerator
 							i++;
 							return newPosition;
 						}
+						newPosition = position; 
 					}
 					if (i == 3 && x > 0 && y < 7 && position[x-1][y+1] != "" && position[x-1][y+1][1] == 'd')
 					{
-						newPosition = position;
 						if (x-1 == 0) newPosition[x][y] = "ql"; 
 						updateNewPosition(newPosition, x, y, -1, 1);
 						if (ignoreCheck || !isCheck(newPosition)) 
@@ -648,6 +683,33 @@ struct MoveGenerator
 							i++;
 							return newPosition;
 						}
+						newPosition = position; 
+					}
+					if (newPosition.enPassantAllowed && i == 4 
+					&& newPosition.enPassantSquare[0] == x-1 
+					&& newPosition.enPassantSquare[1] == y-1)
+					{
+						updateNewPosition(newPosition, x, y, -1, -1);
+						newPosition[x][y-1] = "";
+						if (ignoreCheck || !isCheck(newPosition)) 
+						{
+							i++;
+							return newPosition;
+						} 
+						newPosition = position; 
+					}
+					if (newPosition.enPassantAllowed && i == 5 
+					&& newPosition.enPassantSquare[0] == x-1 
+					&& newPosition.enPassantSquare[1] == y+1) 
+					{
+						updateNewPosition(newPosition, x, y, -1, 1);
+						newPosition[x][y+1] = "";
+						if (ignoreCheck || !isCheck(newPosition)) 
+						{
+							i++;
+							return newPosition;
+						}
+						newPosition = position; 
 					}
 					i++;
 				}
@@ -700,6 +762,7 @@ float evaluate(Position &position, int depth, float alpha, float beta)
 	if (depth > 0) {
 		MoveGenerator moveGenerator = {position, true};
 		Position move = moveGenerator.next();
+		if (moveGenerator.done && !isCheck(move)) return 0.f;
 		float value;
 		if (position.turnPlayer == 'l')
 		{
@@ -745,6 +808,7 @@ float evaluate(Position &position, int depth, float alpha, float beta)
 			if (position[x][y] == "pd") yQuality = static_cast<float>(y)/2.f;
 			if (position[x][y] == "pl") yQuality = static_cast<float>(7-y)/2.f;
 			float multiplier = (10.f+((xQuality+yQuality)/2.f))/10.f;
+			if (position[x][y][0] == 'r') multiplier = 1.f;
 			if (position[x][y][0] == 'k') multiplier = 1.f;
 			if (position[x][y][1] == 'd') multiplier = multiplier * -1.f;
 			value += valueMap[position[x][y][0]] * multiplier;
@@ -816,14 +880,14 @@ int main()
 							   						   "rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",
 	};
 
-	/*std::array<std::array<std::string, 8>, 8> board = {"", "", "", "qd", "kd", "", "", "",
-								   					   "pd", "pd", "pd", "pd", "pd", "pd", "pd", "pd",
+	/*std::array<std::array<std::string, 8>, 8> board = {"", "", "", "", "", "", "rd", "rd",
+														 "",   "",   "",   "",   "",   "",   "",   "",
+														 "",   "",   "",   "",   "",   "",   "",   "",
+														 "",   "",   "",   "kd",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
-														 "",   "",   "",   "",   "",   "",   "",   "",
-	   							   					   "pl", "pl", "pl", "pl", "pl", "pl", "pl", "pl",
-							   						   "rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",
+							   						   "", "", "", "", "kl", "", "", "",
 	};*/
 
 	Position position = {board, {{'l', {true, true, true}}, {'d', {true, true, true}}}, 'l', false, {0, 0}};
@@ -846,13 +910,14 @@ int main()
 	std::cout << "(5) Challenging" << std::endl;
 	std::cout << "Warning: challenging mode may take a long time between turns" << std::endl;
 
+
 	std::string temp;
 	std::getline(std::cin, temp);
 
 	int difficulty = 2;
 
 	for (char &e: temp)
-		if ('0' <= e && e <= '5')
+		if ('0' < e && e <= '9')
 			difficulty = e - '0';
 
 	sf::RenderWindow root(sf::VideoMode(360, 360), "Chess");
@@ -892,6 +957,7 @@ int main()
 					std::array<int, 2> finalPosition = {std::min(std::max(static_cast<int>(mousePosition.y/45.f), 0), 7),
 												  		std::min(std::max(static_cast<int>(mousePosition.x/45.f), 0), 7)};
 					Position newPosition = position; 
+					newPosition.enPassantAllowed = false;
 					if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] != "")
 			 		{
 						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]][0] == 'k')
@@ -906,32 +972,48 @@ int main()
 								std::swap(newPosition[mousePress.initialPosition[0]][0], 
 								newPosition[mousePress.initialPosition[0]][3]); //move rook
 							} 
-							newPosition.castlingRights[newPosition.turnPlayer][0] = false;
 						}
-						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]][0] == 'r')
+						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] == "pd")
 						{
-							if (mousePress.initialPosition[1] == 0) newPosition.castlingRights[newPosition.turnPlayer][1] = false;
-							if (mousePress.initialPosition[1] == 7) newPosition.castlingRights[newPosition.turnPlayer][2] = false;
-						} 
-						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] == "pd"
-						&& finalPosition[0] == 7)
-						{
-							newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] = "qd";
+							if (finalPosition[0] == 7) newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] = "qd";
+							if (mousePress.initialPosition[0] == 1 && finalPosition[0] == 3 && mousePress.initialPosition[1] == finalPosition[1])
+							{
+								newPosition.enPassantAllowed = true;
+								newPosition.enPassantSquare = {2, finalPosition[1]};
+							}
+							if (mousePress.initialPosition[1] != finalPosition[1] && newPosition[finalPosition[0]][finalPosition[1]]	== "")
+							   newPosition[4][finalPosition[1]] = ""; 
 						}  
-						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] == "pl"
-						&& finalPosition[0] == 0)
+						if (newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] == "pl")
 						{
-							newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] = "ql";
+							if (finalPosition[0] == 0) newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]] = "ql";
+							if (mousePress.initialPosition[0] == 6 && finalPosition[0] == 4 && mousePress.initialPosition[1] == finalPosition[1])
+							{
+								newPosition.enPassantAllowed = true;
+								newPosition.enPassantSquare = {5, finalPosition[1]}; 
+							}
+							if (mousePress.initialPosition[1] != finalPosition[1] && newPosition[finalPosition[0]][finalPosition[1]] == "")
+							   newPosition[3][finalPosition[1]] = "";
 						}  	
 					}
+
 					newPosition.toggleTurn(); 
 					newPosition[finalPosition[0]][finalPosition[1]] = "";
 					std::swap(newPosition[mousePress.initialPosition[0]][mousePress.initialPosition[1]],
 					newPosition[finalPosition[0]][finalPosition[1]]);
-					MoveGenerator moveGenerator = {position, false};
+
+					if (newPosition[0][4] != "kd") newPosition.castlingRights['d'][0] = false;  
+					if (newPosition[0][0] != "rd") newPosition.castlingRights['d'][1] = false;
+					if (newPosition[0][7] != "rd") newPosition.castlingRights['d'][2] = false;
+					if (newPosition[7][4] != "kl") newPosition.castlingRights['l'][0] = false;  
+					if (newPosition[7][0] != "rl") newPosition.castlingRights['l'][1] = false;
+					if (newPosition[7][7] != "rl") newPosition.castlingRights['l'][2] = false; 
+
+					MoveGenerator moveGenerator = {position, false}; 
+
 					Position e = moveGenerator.next();
 					while (!moveGenerator.done)
-					{ 
+					{	
 						if (e == newPosition)
 						{
 							positionMutex.lock();
