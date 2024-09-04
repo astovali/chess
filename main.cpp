@@ -861,15 +861,18 @@ float evaluate(Position &position, int depth, float alpha, float beta, float con
 		Position move = moveGenerator.next();
 		if (moveGenerator.done) 
 		{
+			position.toggleTurn();
 			if (!isCheck(position))
 			{
+				position.toggleTurn();
 				return contempt;
 			}
+			position.toggleTurn();
 		}
 		float value;
 		if (position.turnPlayer == 'l')
 		{
-			value = -500.f;
+			value = -5000.f - static_cast<float>(depth); //less moves, more good
 			while (!moveGenerator.done)
 			{
 				value = std::max(value, evaluate(move, depth-1, alpha, beta, contempt));
@@ -880,7 +883,7 @@ float evaluate(Position &position, int depth, float alpha, float beta, float con
 		}
 		if (position.turnPlayer == 'd')
 		{
-			value = 500.f;
+			value = 5000.f + static_cast<float>(depth);
 			while (!moveGenerator.done)
 			{
 				value = std::min(value, evaluate(move, depth-1, alpha, beta, contempt));
@@ -891,8 +894,7 @@ float evaluate(Position &position, int depth, float alpha, float beta, float con
 		}
 		return value;
 	}
-	std::map<char, float> valueMap = {{'k', 200.f},
-									  {'q', 9.f},
+	std::map<char, float> valueMap = {{'q', 9.f},
 									  {'r', 5.f},
 									  {'b', 3.f},
 									  {'n', 3.f},
@@ -902,18 +904,15 @@ float evaluate(Position &position, int depth, float alpha, float beta, float con
 	{
 		for (int y{0}; y<8; y++)
 		{
-			if (position[x][y] == "")
-			{
-				continue;
-			}
+			if (position[x][y] == "") continue;
+			if (position[x][y][0] == 'k') continue;
+
 			float xQuality = 3.5f-fabs(static_cast<float>(x)-3.5f);
 			float yQuality = 3.5f-fabs(static_cast<float>(y)-3.5f);
 			if (position[x][y] == "pd") yQuality = static_cast<float>(y);
 			if (position[x][y] == "pl") yQuality = static_cast<float>(7-y);
 			float multiplier = (10.f+((xQuality+yQuality)/2.f))/10.f;
 			if (position[x][y][0] == 'r') multiplier = 1.f;
-
-			if (position[x][y][0] == 'k') multiplier = 1.f;
 			if (position[x][y][1] == 'd') multiplier = multiplier * -1.f;
 			value += valueMap[position[x][y][0]] * multiplier;
 		}
@@ -938,7 +937,7 @@ Position generateBotMove(Position &position, int depth)
 	std::vector<float> values = {};
 	for (Position &e: moves)
 	{
-		values.push_back(evaluate(e, depth-1, -500.f, 500.f, 1.f));
+		values.push_back(evaluate(e, depth-1, -5000.f, 5000.f, 1.f));
 	}
 	auto best = values.begin();
 	if (position.turnPlayer == 'l')
@@ -984,14 +983,14 @@ int main()
 							   						   "rl", "nl", "bl", "ql", "kl", "bl", "nl", "rl",
 	};
 
-	/*std::array<std::array<std::string, 8>, 8> board = {"kd", "", "", "rd", "", "rd", "", "",
+	/*std::array<std::array<std::string, 8>, 8> board = {"kd", "", "", "", "", "rd", "", "",
+														 "",   "",   "",   "",   "",   "",   "rd",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
-														 "rd",   "",   "",   "",   "",   "",   "",   "",
 														 "",   "",   "",   "",   "",   "",   "",   "",
-							   						   "", "", "", "", "kl", "", "", "",
+							   						   "", "", "", "", "", "", "", "kl",
 	};*/
 
 	Position position = {board, {{'l', {true, true, true}}, {'d', {true, true, true}}}, 'l', false, {0, 0}};
