@@ -521,8 +521,8 @@ struct MoveGenerator
 						if (i == 0 && position.castlingRights[position.turnPlayer][2]
 						&& position[x][y+1] == "" && position[x][y+2] == "")
 						{
-							updateNewPosition(newPosition, x, y, 0, 2);
 							std::swap(newPosition[x][y+1], newPosition[x][y+3]);
+							updateNewPosition(newPosition, x, y, 0, 2);
 							if (ignoreCheck || !isCheck(newPosition)) 
 							{
 								i++;
@@ -533,8 +533,8 @@ struct MoveGenerator
 						if (i == 1 && position.castlingRights[position.turnPlayer][1] && position[x][y-1] == "" 
 						&& position[x][y-2] == "" && position[x][y-3] == "")
 						{
-							updateNewPosition(newPosition, x, y, 0, -2);
 							std::swap(newPosition[x][y-1], newPosition[x][y-4]);
+							updateNewPosition(newPosition, x, y, 0, -2);
 							if (ignoreCheck || !isCheck(newPosition)) 
 							{
 								i++;
