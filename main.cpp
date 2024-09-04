@@ -97,7 +97,7 @@ void renderingThread(RenderThreadParam param)
 	}
 }
 
-bool isCheck(Position &position);
+bool isCheck(Position position);
 
 void updateNewPosition(Position &newPosition, int x, int y, int i, int j)
 {
@@ -117,15 +117,17 @@ struct MoveGenerator
 {
 	Position position;
 	bool ignoreCheck;
+	bool onlyCaptures;
 	int x;
 	int y;
 	int i;
 	int pos;
 	bool done;
-	MoveGenerator(Position _position, bool _ignoreCheck = true)
+	MoveGenerator(Position _position, bool _ignoreCheck = true, bool _onlyCaptures = false)
 	{
 		position = _position;
 		ignoreCheck = _ignoreCheck;
+		onlyCaptures = _onlyCaptures;
 		x = 0;
 		y = 0;
 		i = 0;
@@ -164,7 +166,7 @@ struct MoveGenerator
 							pos++;
 							i = 0;
 						}
-						else
+						else if (!onlyCaptures)
 						{
 							updateNewPosition(newPosition, x, y, i, 0);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -197,7 +199,7 @@ struct MoveGenerator
 							pos++;
 							i = 0;
 						}
-						else
+						else if (!onlyCaptures)
 						{
 							updateNewPosition(newPosition, x, y, -i, 0);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -230,7 +232,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, 0, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -263,7 +265,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, 0, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -300,7 +302,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, i, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -333,7 +335,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, -i, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -366,7 +368,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, i, -i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -399,7 +401,7 @@ struct MoveGenerator
 							pos++;
 							i = 0; 
 						}
-						else
+						else if (!onlyCaptures) 
 						{
 							updateNewPosition(newPosition, x, y, -i, i);
 							if (ignoreCheck || !isCheck(newPosition)) return newPosition;
@@ -437,7 +439,7 @@ struct MoveGenerator
 									newPosition = position; 
 								}
 							}
-							else
+							else if (!onlyCaptures) 
 							{
 								updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 								if (ignoreCheck || !isCheck(newPosition)) 
@@ -486,7 +488,7 @@ struct MoveGenerator
 									newPosition = position; 
 								}
 							}
-							else
+							else if (!onlyCaptures) 
 							{
 								updateNewPosition(newPosition, x, y, moves[i][0], moves[i][1]);
 								if (ignoreCheck || !isCheck(newPosition)) 
@@ -514,7 +516,7 @@ struct MoveGenerator
 						i = 0;
 						break;
 					}
-					else
+					else if (!onlyCaptures) 
 					{
 						if (i == 0 && position.castlingRights[position.turnPlayer][2]
 						&& position[x][y+1] == "" && position[x][y+2] == "")
@@ -544,7 +546,7 @@ struct MoveGenerator
 					i++;
 				}
 			}
-			if(position[x][y] == "pd") //dark pawn
+			if (position[x][y] == "pd") //dark pawn
 			{
 				while (pos < 12) 
 				{
@@ -555,7 +557,7 @@ struct MoveGenerator
 						i = 0;
 						break;
 					}
-					if (i == 0 && x == 1 && position[x+1][y] == "" && position[x+2][y] == "")
+					if (i == 0 && x == 1 && position[x+1][y] == "" && position[x+2][y] == "" && !onlyCaptures)
 					{
 						updateNewPosition(newPosition, x, y, 2, 0); 
 						newPosition.enPassantAllowed = true;
@@ -567,7 +569,7 @@ struct MoveGenerator
 						}
 						newPosition = position; 
 					}
-					if (i == 1 && x < 7 && position[x+1][y] == "")
+					if (i == 1 && x < 7 && position[x+1][y] == "" && !onlyCaptures)
 					{
 						if (x+1 == 7) newPosition[x][y] = "qd";
 						updateNewPosition(newPosition, x, y, 1, 0);		
@@ -629,7 +631,7 @@ struct MoveGenerator
 					i++;
 				}
 			}
-			if(position[x][y] == "pl") //light pawn
+			if (position[x][y] == "pl") //light pawn
 			{	
 				while (pos < 13)
 				{
@@ -640,7 +642,7 @@ struct MoveGenerator
 						i = 0;
 						break;
 					}
-					if (i == 0 && x == 6 && position[x-1][y] == "" && position[x-2][y] == "")
+					if (i == 0 && x == 6 && position[x-1][y] == "" && position[x-2][y] == "" && !onlyCaptures)
 					{
 						updateNewPosition(newPosition, x, y, -2, 0);
 						newPosition.enPassantAllowed = true;
@@ -652,7 +654,7 @@ struct MoveGenerator
 						}
 						newPosition = position; 
 					}
-					if (i == 1 && x > 0 && position[x-1][y] == "")
+					if (i == 1 && x > 0 && position[x-1][y] == "" && !onlyCaptures)
 					{
 						if (x-1 == 0) newPosition[x][y] = "ql";
 						updateNewPosition(newPosition, x, y, -1, 0);
@@ -729,31 +731,126 @@ struct MoveGenerator
 	}
 };
 
-bool isCheck(Position &position)
+bool isCheck(Position position)
 {
-	MoveGenerator moveGenerator = {position, true};
-	bool check = false;
-	Position e = moveGenerator.next();
-	while (!moveGenerator.done)
+	int x = 0;
+	int y = 0;
+	bool found = false;
+	position.toggleTurn();
+	for (x = 0; x < 8; x++)
 	{
-		bool k = false;
-		for (int x{0}; x<8; x++)
+		for (y = 0; y < 8; y++)
 		{
-			for (int y{0}; y<8; y++)
+			if (position[x][y] != ""
+			&& position[x][y][0] == 'k'
+			&& position[x][y][1] == position.turnPlayer)
 			{
-				if (e[x][y] != ""
-				&& e[x][y][0] == 'k'
-				&& e[x][y][1] != position.turnPlayer) k = true;
+				found = true;
+				break;
 			}
 		}
-		if (!k)
-		{
-			check = true;
-			break;
-		}
-		e = moveGenerator.next();
+		if (found) break;
 	}
-	return check;
+	if (x == 8 || y == 8) return true;
+	
+	for (int i{1}; i<=x; i++)
+	{
+		auto square = position[x-i][y];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'r') return true;
+		else break;
+	}
+	for (int i{1}; i<(8-x); i++)
+	{
+		auto square = position[x+i][y];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'r') return true;
+		else break;
+	}
+    for (int i{1}; i<=y; i++)
+	{
+		auto square = position[x][y-i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'r') return true;
+		else break;
+	}
+	for (int i{1}; i<(8-y); i++)
+	{
+		auto square = position[x][y+i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'r') return true;
+		else break;
+	}
+ 	for (int i{1}; i<=x && i<=y; i++)
+	{
+		auto square = position[x-i][y-i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'b') return true;
+		else break;
+	}
+	for (int i{1}; i<(8-x) && i<=y; i++)
+	{
+		auto square = position[x+i][y-i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'b') return true;
+		else break;
+	}
+    for (int i{1}; i<=x && i<(8-y); i++)
+	{
+		auto square = position[x-i][y+i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'b') return true;
+		else break;
+	}
+	for (int i{1}; i<(8-x) && i<(8-y); i++)
+	{
+		auto square = position[x+i][y+i];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) break;
+		if (square[0] == 'q' || square[0] == 'b') return true;
+		else break;
+	}
+    std::array<std::array<int, 2>, 8> moves = {{{1, 2}, {2, 1}, {-1, 2}, {2, -1}, {1, -2}, {-2, 1}, {-1, -2}, {-2, -1}}};
+	for (std::array<int, 2> move: moves)
+	{
+		if (x+move[0] < 0 || x+move[0] > 7 || y+move[1] < 0 || y+move[1] > 7) continue;
+		auto square = position[x+move[0]][y+move[1]];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) continue;
+		if (square[0] == 'n') return true;
+	}
+	moves = {{{1, 1}, {1, 0}, {1, -1}, {0, 1}, {0, -1}, {-1, 1}, {-1, 0}, {-1, -1}}};
+	for (std::array<int, 2> move: moves)
+	{
+		if (x+move[0] < 0 || x+move[0] > 7 || y+move[1] < 0 || y+move[1] > 7) continue;
+		auto square = position[x+move[0]][y+move[1]];
+		if (square == "") continue;
+		if (square[1] == position.turnPlayer) continue;
+		if (square[0] == 'k') return true;
+	}
+	if (position.turnPlayer == 'l')
+	{
+		if (x-1 >= 0 && y-1 >= 0)
+			if (position[x-1][y-1] == "pd") return true;
+		if (x-1 >= 0 && y+1 <= 7)
+			if (position[x-1][y+1] == "pd") return true;
+	}
+	if (position.turnPlayer == 'd')
+	{
+		if (x+1 <= 7 && y-1 >= 0)
+			if (position[x+1][y-1] == "pl") return true;
+		if (x+1 <= 7 && y+1 <= 7)
+			if (position[x+1][y+1] == "pl") return true;
+	} 
+
+	return false;
 }
 
 
@@ -852,7 +949,6 @@ Position generateBotMove(Position &position, int depth)
 	{
 		best = std::min_element(values.begin(), values.end()); //d player wants lowest value  
 	}
-	std::cout << *best << std::endl;
 	return moves[std::distance(values.begin(), best)];
 }
 			
@@ -922,7 +1018,7 @@ int main()
 	std::string temp;
 	std::getline(std::cin, temp);
 
-	int difficulty = 2;
+	int difficulty = 4;
 
 	for (char &e: temp)
 		if ('0' < e && e <= '9')
@@ -1021,15 +1117,15 @@ int main()
 
 					Position e = moveGenerator.next();
 					while (!moveGenerator.done)
-					{	
+					{
 						if (e == newPosition)
 						{
 							positionMutex.lock();
 							position = newPosition;
-							auto start = std::chrono::high_resolution_clock::now();
+							//auto start = std::chrono::high_resolution_clock::now();
 							position = generateBotMove(position, difficulty);
-							auto stop = std::chrono::high_resolution_clock::now(); 
-							std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;
+							/*auto stop = std::chrono::high_resolution_clock::now(); 
+							std::cout << std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() << std::endl;*/
 							positionMutex.unlock();
 							break;
 						}
